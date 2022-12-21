@@ -1,16 +1,25 @@
 
 # Python program to implement a simple crypto conversion
 # of 8-bit plaintext to ciphertext
- 
+# and to train Neuron Network to decode message without knowing the key than
+
+import tensorflow as tf
+from tensorflow import keras
+import itertools
+#import numpy as np
+print("TensorFlow version:", tf.__version__)
+
+PLAIN_TEXT_LENGTH = 8;
+
 # Class to code 8-bit plaintext message
 class CryptoWorker():
     ROUND_KEY = [1, 0, 1, 0, 1, 1, 1, 0];
-    # ordered s-box-table can't be used, becasuse result obviously correlates to theinitial plain text
+    # ordered s-box-table can't be used, becasuse result obviously correlates to the initial plain text
+    # don't do:
     # S_BOX_TABLE = [[[0,0,0,0], [0,0,0,1], [0,0,1,0], [0,0,1,1]], [[0,1,0,0], [0,1,0,1], [0,1,1,0], [0,1,1,1]], [[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1]], [[1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]]];
     # use unordered table
     S_BOX_TABLE = [[[0,1,0,0], [0,1,0,1], [0,1,1,1], [1,1,1,1]], [[1,1,1,0], [0,0,0,1], [0,0,1,0], [0,0,1,1]], [[1,1,0,0], [1,1,0,1], [0,0,0,0], [1,0,0,0]], [[0,1,1,0], [1,0,0,1], [1,0,1,0], [1,0,1,1]]];
     INDEXES_MAP = ['00', '01', '10', '11'];
-    HALF_MESSAGE_LENGTH = 4;
     SHIFT_ITERATIONS = 5;
 
     plain_text = [];
@@ -28,12 +37,12 @@ class CryptoWorker():
 
     def bisect_message(self):
         # Check that message has an appropriate length
-        if len(self.plain_text) != self.HALF_MESSAGE_LENGTH * 2:
+        if len(self.plain_text) != PLAIN_TEXT_LENGTH:
            self.print_message('plaintext message has an incorrect length');
            return
 
-        self.left_half_message = self.plain_text[0 : self.HALF_MESSAGE_LENGTH];
-        self.right_half_message = self.plain_text[self.HALF_MESSAGE_LENGTH : self.HALF_MESSAGE_LENGTH * 2];
+        self.left_half_message = self.plain_text[0 : PLAIN_TEXT_LENGTH / 2];
+        self.right_half_message = self.plain_text[PLAIN_TEXT_LENGTH / 2 : PLAIN_TEXT_LENGTH];
         # self.print_message('left_half_message ', self.left_half_message);
         # self.print_message('right_half_message ', self.right_half_message);
 
@@ -43,12 +52,12 @@ class CryptoWorker():
     # s-box substitution
     def substitute_message(self, message):
         # Check that initial message has an appropriate length
-        if len(message) != self.HALF_MESSAGE_LENGTH:
+        if len(message) != PLAIN_TEXT_LENGTH / 2:
            self.print_message('s-box message has an incorrect length');
            return
 
         # Treat S_BOX_TABLE as a two dimensional 4x4 array, every lowest array of which is an output text
-        row_index_string = str(message[0]) + str(message[self.HALF_MESSAGE_LENGTH - 1]);
+        row_index_string = str(message[0]) + str(message[PLAIN_TEXT_LENGTH / 2 - 1]);
         column_index_string = str(message[1]) + str(message[2]);
         row_index = self.INDEXES_MAP.index(row_index_string);
         column_index = self.INDEXES_MAP.index(column_index_string);
@@ -58,7 +67,7 @@ class CryptoWorker():
     # round key mutation
     def mutate_message(self, message):
         # Check that message has an appropriate length
-        if len(message) != self.HALF_MESSAGE_LENGTH * 2:
+        if len(message) != PLAIN_TEXT_LENGTH:
            self.print_message("can't apply round key because of inappropriate message length");
            return
         
@@ -70,7 +79,7 @@ class CryptoWorker():
     # cycle shift left
     def shift_message(self):
         # Check that cipher text is ready for shifting
-        if len(self.cipher_text) != self.HALF_MESSAGE_LENGTH * 2:
+        if len(self.cipher_text) != PLAIN_TEXT_LENGTH:
            self.print_message('you have to prepare cipher text first');
            return
 
@@ -93,23 +102,21 @@ class CryptoWorker():
         return self.shift_message();
 
 
-# Keras Neuron Network
-class SequentialDecryptoWorker():
-    import tensorflow as tf
-    from tensorflow import keras
-    #import numpy as np
-    print("TensorFlow version:", tf.__version__)
+# Class to generate dataset pairs for Neuron Network
+class GetDatasetWorker():
+    plain_dataset = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH))
+    print('dataset', plain_dataset)
+    print('dataset length', len(plain_dataset))
 
+# Class to format dataset pairs for Neuron Network
+class FormatDatasetWorker():
+    print()
+
+
+# Keras Sequential Neuron Network
+class SequentialDecryptoNN():
     # Sequential model with 3 layers
-    #model = keras.Sequential(
-    #    [
-    #        keras.layers.Dense(8, activation='relu', name='layer1'),
-    #        keras.layers.Dense(8, activation='relu', name='layer2'),
-    #        keras.layers.Dense(8, name='layer3'),
-    #        ]
-    #    )
-
-    nn_model = keras.Sequential(name='DecryptoModel')
+    nn_model = keras.Sequential(name='SequentialDecryptoModel')
     nn_input = keras.layers.Input(shape=(8,))
     nn_layer_1 = keras.layers.Dense(8, activation='relu', name='layer1')
     nn_layer_2 = keras.layers.Dense(8, activation='relu', name='layer2')
@@ -146,6 +153,6 @@ if __name__ == "__main__":
     print ('Cipher text ', cipher_text);
     print ();
  
-    sequentialDecryptoWorker = SequentialDecryptoWorker()
+    sequentialDecryptoNN = SequentialDecryptoNN()
 
 
