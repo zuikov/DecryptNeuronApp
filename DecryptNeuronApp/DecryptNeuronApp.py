@@ -6,13 +6,14 @@
 import tensorflow as tf
 from tensorflow import keras
 import itertools
-#import numpy as np
+import numpy as np
 print("TensorFlow version:", tf.__version__)
 
 PLAIN_TEXT_LENGTH = 8;
 
 # Class to code 8-bit plaintext message
 class CryptoWorker():
+    HALF_PLAIN_TEXT_LENGTH = int(PLAIN_TEXT_LENGTH / 2);
     ROUND_KEY = [1, 0, 1, 0, 1, 1, 1, 0];
     # ordered s-box-table can't be used, becasuse result obviously correlates to the initial plain text
     # don't do:
@@ -22,29 +23,21 @@ class CryptoWorker():
     INDEXES_MAP = ['00', '01', '10', '11'];
     SHIFT_ITERATIONS = 5;
 
-    plain_text = [];
-    left_half_message = [];
-    right_half_message = [];
-    cipher_text = []
-
-    def set_plain_text (self, plain_text):
-        self.plain_text = plain_text;
-
     def print_message(self, description, *value):
         # Accept a list of arguments after description
         print (description, *value);
         print ();
 
-    def bisect_message(self):
+    def bisect_message(self, message):
         # Check that message has an appropriate length
-        if len(self.plain_text) != PLAIN_TEXT_LENGTH:
+        if len(message) != PLAIN_TEXT_LENGTH:
            self.print_message('plaintext message has an incorrect length');
            return
 
-        self.left_half_message = self.plain_text[0 : PLAIN_TEXT_LENGTH / 2];
-        self.right_half_message = self.plain_text[PLAIN_TEXT_LENGTH / 2 : PLAIN_TEXT_LENGTH];
-        # self.print_message('left_half_message ', self.left_half_message);
-        # self.print_message('right_half_message ', self.right_half_message);
+        left_half_message = message[0 : self.HALF_PLAIN_TEXT_LENGTH];
+        right_half_message = message[self.HALF_PLAIN_TEXT_LENGTH : PLAIN_TEXT_LENGTH];
+
+        return [left_half_message, right_half_message];
 
     def concatenate_message(self, left_message, right_message):
         return [*left_message, *right_message]
@@ -52,12 +45,12 @@ class CryptoWorker():
     # s-box substitution
     def substitute_message(self, message):
         # Check that initial message has an appropriate length
-        if len(message) != PLAIN_TEXT_LENGTH / 2:
+        if len(message) != self.HALF_PLAIN_TEXT_LENGTH:
            self.print_message('s-box message has an incorrect length');
            return
 
         # Treat S_BOX_TABLE as a two dimensional 4x4 array, every lowest array of which is an output text
-        row_index_string = str(message[0]) + str(message[PLAIN_TEXT_LENGTH / 2 - 1]);
+        row_index_string = str(message[0]) + str(message[self.HALF_PLAIN_TEXT_LENGTH - 1]);
         column_index_string = str(message[1]) + str(message[2]);
         row_index = self.INDEXES_MAP.index(row_index_string);
         column_index = self.INDEXES_MAP.index(column_index_string);
@@ -70,43 +63,61 @@ class CryptoWorker():
         if len(message) != PLAIN_TEXT_LENGTH:
            self.print_message("can't apply round key because of inappropriate message length");
            return
+
+        cipher_text = []
         
         for index, round_key_bit in enumerate(self.ROUND_KEY):
-            # This works correctly only for one round mutation
             mutated_bit = message[index] ^ round_key_bit;
-            self.cipher_text.append(mutated_bit);
+            cipher_text.append(mutated_bit);
+
+        return cipher_text;
 
     # cycle shift left
-    def shift_message(self):
+    def shift_message(self, message):
         # Check that cipher text is ready for shifting
-        if len(self.cipher_text) != PLAIN_TEXT_LENGTH:
+        cipher_text_length = len(message);
+        if cipher_text_length != PLAIN_TEXT_LENGTH:
+           self.print_message('cipher text length ', cipher_text_length);
            self.print_message('you have to prepare cipher text first');
            return
 
-        for _iteration in range(self.SHIFT_ITERATIONS):
-            bit_buffer = self.cipher_text.pop(0);
-            self.cipher_text.append(bit_buffer);
+        cipher_text = [*message];
 
-        # self.print_message('ciphertext processing finished');
-        return self.cipher_text;
+        for _iteration in range(self.SHIFT_ITERATIONS):
+            bit_buffer = cipher_text.pop(0);
+            cipher_text.append(bit_buffer);
+
+        return cipher_text;
 
     # crypto conversion
     def code_text(self, plain_text):
-        # self.print_message('plaintext processing starts');
-        self.set_plain_text(plain_text);
-        self.bisect_message();
-        left_substitution = self.substitute_message(self.left_half_message);
-        right_substitution =self.substitute_message(self.right_half_message);
+        left_half_message, right_half_message = self.bisect_message(plain_text);
+        left_substitution = self.substitute_message(left_half_message);
+        right_substitution = self.substitute_message(right_half_message);
         concatenated_message = self.concatenate_message(left_substitution, right_substitution);
-        self.mutate_message(concatenated_message);
-        return self.shift_message();
+        mutated_message = self.mutate_message(concatenated_message);
+
+        return self.shift_message(mutated_message);
 
 
 # Class to generate dataset pairs for Neuron Network
 class GetDatasetWorker():
-    plain_dataset = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH))
-    print('dataset', plain_dataset)
-    print('dataset length', len(plain_dataset))
+    cipher_dataset = [];
+    cryptoWorker = CryptoWorker();
+
+    plain_dataset_list = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH));
+    plain_dataset = [[*dataset] for dataset in plain_dataset_list];
+    print('plain_dataset_list', plain_dataset_list);
+
+    for plain_set in plain_dataset:
+        print('plain_set', plain_set);
+        cipher_dataset.append(cryptoWorker.code_text(plain_set));
+
+    print('plain_dataset', plain_dataset);
+    print('plain_dataset length', len(plain_dataset));
+    print('cipher_dataset', cipher_dataset);
+    print('cipher_dataset length', len(cipher_dataset));
+
 
 # Class to format dataset pairs for Neuron Network
 class FormatDatasetWorker():
