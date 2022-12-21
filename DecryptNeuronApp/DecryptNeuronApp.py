@@ -94,39 +94,42 @@ class CryptoWorker():
 
 
 # Keras Neuron Network
-class KerasDecryptoWorker():
-    from keras import backend as K
-    from keras.models import Model
-    from keras.engine.input_layer import Input
-    from keras.layers.core import Activation, Dense
-    from keras.layers import Flatten, Reshape
-    from keras.layers.convolutional import Conv1D
-    from keras.layers.merging import concatenate
-    from keras.optimizers import Adam, RMSprop
+class SequentialDecryptoWorker():
+    import tensorflow as tf
+    from tensorflow import keras
+    #import numpy as np
+    print("TensorFlow version:", tf.__version__)
 
-    # Crypto parameters
-    # Use 8-bit messages
-    c_bits = 8
-    pad = 'same'
+    # Sequential model with 3 layers
+    #model = keras.Sequential(
+    #    [
+    #        keras.layers.Dense(8, activation='relu', name='layer1'),
+    #        keras.layers.Dense(8, activation='relu', name='layer2'),
+    #        keras.layers.Dense(8, name='layer3'),
+    #        ]
+    #    )
 
-    nn_input = Input(shape=(c_bits))
+    nn_model = keras.Sequential(name='DecryptoModel')
+    nn_input = keras.layers.Input(shape=(8,))
+    nn_layer_1 = keras.layers.Dense(8, activation='relu', name='layer1')
+    nn_layer_2 = keras.layers.Dense(8, activation='relu', name='layer2')
+    nn_layer_3 = keras.layers.Dense(8, activation='relu', name='layer3')
 
-    nn_dense1 = Dense(units=(c_bits))(nn_input)
-    nn_dense1a = Activation('tann')(nn_dense1)
+    nn_model.add(nn_input)
+    nn_model.add(nn_layer_1)
+    nn_model.add(nn_layer_2)
+    nn_model.add(nn_layer_3)
 
-    nn_conv1 = Conv1D(filters=2, kernel_size=4, strides=1, padding=pad)(nn_dense1a)
-    nn_conv1a = Activation('tann')(nn_conv1)
-    nn_conv2 = Conv1D(filters=4, kernel_size=2, strides=2, padding=pad)(nn_conv1a)
-    nn_conv2a = Activation('tann')(nn_conv2)
-    nn_conv3 = Conv1D(filters=4, kernel_size=1, strides=1, padding=pad)(nn_conv2a)
-    nn_conv3a = Activation('tann')(nn_conv3)
-    nn_conv4 = Conv1D(filters=1, kernel_size=1, strides=1, padding=pad)(nn_conv3a)
-    nn_conv4a = Activation('tann')(nn_conv4)
+    nn_model.summary()
+    
 
-    # Attempt at guessing plaintext
-    nn_output = Flatten()(nn_conv4a)
+    # Call model on a test input
+    x = tf.ones((1,8))
+    y = nn_model(x)
 
-    nn_keras = Model(nn_input, nn_output, name='nn_keras')
+    print('y', y)
+    print('nn_layer_1 weights', nn_layer_1.get_weights())
+
 
 
 # Driver Code
@@ -143,5 +146,6 @@ if __name__ == "__main__":
     print ('Cipher text ', cipher_text);
     print ();
  
+    sequentialDecryptoWorker = SequentialDecryptoWorker()
 
 
