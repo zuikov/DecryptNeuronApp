@@ -104,17 +104,19 @@ class CryptoWorker():
 class GetDatasetWorker():
     cipher_dataset = [];
 
-    plain_dataset_list = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH));
-    #plain_dataset = [[*dataset] for dataset in plain_dataset_list];
-    plain_dataset = np.array(plain_dataset_list);
+    def create_plaintext_dataset(self, dataset_length):
+        plain_dataset_list = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH));
+        #plain_dataset = [[*dataset] for dataset in plain_dataset_list];
+        return np.array(plain_dataset_list)[0 : dataset_length];
 
-    def create_dataset(self, cryptoWorker):
+    def create_dataset(self, cryptoWorker, dataset_length):
+        plain_dataset = self.create_plaintext_dataset(dataset_length);
 
-        for plain_set in self.plain_dataset:
+        for plain_set in plain_dataset:
             cipher_set = cryptoWorker.code_text(plain_set);
             self.cipher_dataset.append(cipher_set);
 
-        return [self.plain_dataset, np.array(self.cipher_dataset)];
+        return [plain_dataset, np.array(self.cipher_dataset)];
 
 
 # Class to format dataset pairs for Neuron Network
@@ -150,27 +152,30 @@ class SequentialDecryptoNN():
     cryptoWorker = CryptoWorker();
     getDatasetWorker = GetDatasetWorker();
     
-    train_plaintext, train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker);
+    dataset_length = 128;
+    train_plaintext, train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker, dataset_length);
 
     train_plaintext_length = len(train_plaintext);
     train_ciphertext_length = len(train_ciphertext);
 
     print('train_plaintext', train_plaintext);
-    print('train_plaintext length', train_plaintext_length);
     print('train_ciphertext', train_ciphertext);
-    print('train_ciphertext length', train_ciphertext_length);
+    
 
     history = nn_model.fit(
         train_ciphertext,
         train_plaintext,
         batch_size = train_plaintext_length,
-        epochs = 15000
+        epochs = 10000
         )
     
 
     validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 1];
-    #validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 0];
+    ##validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 0];
     validation_ciphertext = cryptoWorker.code_text(validation_plaintext);
+
+    print('train_plaintext length', train_plaintext_length);
+    print('train_ciphertext length', train_ciphertext_length);
 
     print ('validation_plaintext   ', validation_plaintext);
     print ('validation_ciphertext  ', validation_ciphertext);
