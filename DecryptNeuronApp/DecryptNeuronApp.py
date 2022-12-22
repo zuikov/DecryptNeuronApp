@@ -105,7 +105,8 @@ class GetDatasetWorker():
     cipher_dataset = [];
 
     plain_dataset_list = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH));
-    plain_dataset = [[*dataset] for dataset in plain_dataset_list];
+    #plain_dataset = [[*dataset] for dataset in plain_dataset_list];
+    plain_dataset = np.array(plain_dataset_list);
 
     def create_dataset(self, cryptoWorker):
 
@@ -113,7 +114,7 @@ class GetDatasetWorker():
             cipher_set = cryptoWorker.code_text(plain_set);
             self.cipher_dataset.append(cipher_set);
 
-        return [self.plain_dataset, self.cipher_dataset];
+        return [self.plain_dataset, np.array(self.cipher_dataset)];
 
 
 # Class to format dataset pairs for Neuron Network
@@ -138,7 +139,7 @@ class SequentialDecryptoNN():
     nn_model.summary()
 
     nn_model.compile(
-        optimizer=keras.optimazers.Adam(learning_rate=1e-3),
+        optimizer=keras.optimizers.Adam(learning_rate=1e-3),
         loss=keras.losses.BinaryCrossentropy(),
         metrics=[
             keras.metrics.BinaryAccuracy(),
