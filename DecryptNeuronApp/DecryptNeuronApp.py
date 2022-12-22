@@ -20,7 +20,7 @@ class CryptoWorker():
     # S_BOX_TABLE = [[[0,0,0,0], [0,0,0,1], [0,0,1,0], [0,0,1,1]], [[0,1,0,0], [0,1,0,1], [0,1,1,0], [0,1,1,1]], [[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1]], [[1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]]];
     # use unordered table
     S_BOX_TABLE = [[[0,1,0,0], [0,1,0,1], [0,1,1,1], [1,1,1,1]], [[1,1,1,0], [0,0,0,1], [0,0,1,0], [0,0,1,1]], [[1,1,0,0], [1,1,0,1], [0,0,0,0], [1,0,0,0]], [[0,1,1,0], [1,0,0,1], [1,0,1,0], [1,0,1,1]]];
-    INDEXES_MAP = ['00', '01', '10', '11'];
+    INDICES_MAP = ['00', '01', '10', '11'];
     SHIFT_ITERATIONS = 5;
 
     def print_message(self, description, *value):
@@ -52,8 +52,8 @@ class CryptoWorker():
         # Treat S_BOX_TABLE as a two dimensional 4x4 array, every lowest array of which is an output text
         row_index_string = str(message[0]) + str(message[self.HALF_PLAIN_TEXT_LENGTH - 1]);
         column_index_string = str(message[1]) + str(message[2]);
-        row_index = self.INDEXES_MAP.index(row_index_string);
-        column_index = self.INDEXES_MAP.index(column_index_string);
+        row_index = self.INDICES_MAP.index(row_index_string);
+        column_index = self.INDICES_MAP.index(column_index_string);
 
         return self.S_BOX_TABLE[row_index][column_index]
 
@@ -103,20 +103,17 @@ class CryptoWorker():
 # Class to generate dataset pairs for Neuron Network
 class GetDatasetWorker():
     cipher_dataset = [];
-    cryptoWorker = CryptoWorker();
 
     plain_dataset_list = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH));
     plain_dataset = [[*dataset] for dataset in plain_dataset_list];
-    print('plain_dataset_list', plain_dataset_list);
 
-    for plain_set in plain_dataset:
-        print('plain_set', plain_set);
-        cipher_dataset.append(cryptoWorker.code_text(plain_set));
+    def create_dataset(self, cryptoWorker):
 
-    print('plain_dataset', plain_dataset);
-    print('plain_dataset length', len(plain_dataset));
-    print('cipher_dataset', cipher_dataset);
-    print('cipher_dataset length', len(cipher_dataset));
+        for plain_set in self.plain_dataset:
+            cipher_set = cryptoWorker.code_text(plain_set);
+            self.cipher_dataset.append(cipher_set);
+
+        return [self.plain_dataset, self.cipher_dataset];
 
 
 # Class to format dataset pairs for Neuron Network
@@ -139,6 +136,27 @@ class SequentialDecryptoNN():
     nn_model.add(nn_layer_3)
 
     nn_model.summary()
+
+    nn_model.compile(
+        optimizer=keras.optimazers.Adam(learning_rate=1e-3),
+        loss=keras.losses.BinaryCrossentropy(),
+        metrics=[
+            keras.metrics.BinaryAccuracy(),
+            keras.metrics.FalseNegatives()
+            ]
+        )
+
+    cryptoWorker = CryptoWorker();
+    getDatasetWorker = GetDatasetWorker()
+    
+    x_train, y_train = getDatasetWorker.create_dataset(cryptoWorker)
+
+    print('x_train', x_train);
+    print('x_train length', len(x_train));
+    print('y_train ', y_train );
+    print('y_train  length', len(y_train ));
+
+
     
 
     # Call model on a test input
