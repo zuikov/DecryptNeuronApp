@@ -164,15 +164,16 @@ class SequentialDecryptoNN():
         train_ciphertext,
         train_plaintext,
         batch_size = train_plaintext_length,
-        epochs = 10000
+        epochs = 15000
         )
     
 
     validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 1];
+    #validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 0];
     validation_ciphertext = cryptoWorker.code_text(validation_plaintext);
 
-    print ('validation_plaintext  ', validation_plaintext);
-    print ('validation_ciphertext ', validation_ciphertext);
+    print ('validation_plaintext   ', validation_plaintext);
+    print ('validation_ciphertext  ', validation_ciphertext);
     print ();
 
     # Call model on a test input
@@ -184,7 +185,7 @@ class SequentialDecryptoNN():
     normalized_predictions = [];
 
     for normalized_bit in predictions[0]:
-        normalized_prediction_bit = 0 if normalized_bit < 1 else 1;
+        normalized_prediction_bit = round(normalized_bit) if normalized_bit < 1 else 1;
         normalized_predictions.append(normalized_prediction_bit);
 
     print ('normalized_predictions ', normalized_predictions);
@@ -198,6 +199,6 @@ class SequentialDecryptoNN():
 # Driver Code
 if __name__ == "__main__":
 
-    sequentialDecryptoNN = SequentialDecryptoNN()
+    SequentialDecryptoNN()
 
 
