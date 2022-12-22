@@ -164,7 +164,7 @@ class SequentialDecryptoNN():
         train_ciphertext,
         train_plaintext,
         batch_size = train_plaintext_length,
-        epochs = 100
+        epochs = 1000
         )
     
 
@@ -173,6 +173,11 @@ class SequentialDecryptoNN():
 
     print ('validation_plaintext  ', validation_plaintext);
     print ('validation_ciphertext ', validation_ciphertext);
+    print ();
+
+    predictions = nn_model.predict([validation_ciphertext]);
+
+    print ('predictions           ', predictions);
     print ();
 
     # Call model on a test input
