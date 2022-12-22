@@ -164,7 +164,7 @@ class SequentialDecryptoNN():
         train_ciphertext,
         train_plaintext,
         batch_size = train_plaintext_length,
-        epochs = 1000
+        epochs = 5000
         )
     
 
@@ -175,16 +175,13 @@ class SequentialDecryptoNN():
     print ('validation_ciphertext ', validation_ciphertext);
     print ();
 
+    # Call model on a test input
     predictions = nn_model.predict([validation_ciphertext]);
 
     print ('predictions           ', predictions);
     print ();
 
-    # Call model on a test input
-    x = tf.ones((1,8))
-    y = nn_model(x)
-
-    print('y', y)
+ 
     print('nn_layer_1 weights', nn_layer_1.get_weights())
 
 
