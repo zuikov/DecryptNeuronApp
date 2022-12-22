@@ -150,23 +150,30 @@ class SequentialDecryptoNN():
     cryptoWorker = CryptoWorker();
     getDatasetWorker = GetDatasetWorker();
     
-    x_train_plaintext, y_train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker);
+    train_plaintext, train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker);
 
-    x_train_ciphertext_length = len(x_train_plaintext);
-    y_train_ciphertext_length = len(y_train_ciphertext);
+    train_plaintext_length = len(train_plaintext);
+    train_ciphertext_length = len(train_ciphertext);
 
-    print('x_train_plaintext', x_train_plaintext);
-    print('x_train_plaintext length', x_train_ciphertext_length);
-    print('y_train_ciphertext', y_train_ciphertext);
-    print('y_train_ciphertext length', y_train_ciphertext_length);
+    print('train_plaintext', train_plaintext);
+    print('train_plaintext length', train_plaintext_length);
+    print('train_ciphertext', train_ciphertext);
+    print('train_ciphertext length', train_ciphertext_length);
 
     history = nn_model.fit(
-        x_train_plaintext,
-        y_train_ciphertext,
-        batch_size = x_train_ciphertext_length,
-        epochs = 10
+        train_ciphertext,
+        train_plaintext,
+        batch_size = train_plaintext_length,
+        epochs = 100
         )
     
+
+    validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 1];
+    validation_ciphertext = cryptoWorker.code_text(validation_plaintext);
+
+    print ('validation_plaintext  ', validation_plaintext);
+    print ('validation_ciphertext ', validation_ciphertext);
+    print ();
 
     # Call model on a test input
     x = tf.ones((1,8))
@@ -180,17 +187,6 @@ class SequentialDecryptoNN():
 # Driver Code
 if __name__ == "__main__":
 
-    plain_text = [0, 0, 1, 1, 1, 0, 1, 1];
-
-    cryptoWorker = CryptoWorker();
-
-    cipher_text = cryptoWorker.code_text(plain_text);
-
-    
-    print ('Plain text  ', plain_text);
-    print ('Cipher text ', cipher_text);
-    print ();
- 
     sequentialDecryptoNN = SequentialDecryptoNN()
 
 
