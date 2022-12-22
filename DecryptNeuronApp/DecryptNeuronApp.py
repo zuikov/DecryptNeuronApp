@@ -164,7 +164,7 @@ class SequentialDecryptoNN():
         train_ciphertext,
         train_plaintext,
         batch_size = train_plaintext_length,
-        epochs = 5000
+        epochs = 10000
         )
     
 
@@ -179,6 +179,15 @@ class SequentialDecryptoNN():
     predictions = nn_model.predict([validation_ciphertext]);
 
     print ('predictions           ', predictions);
+    print ();
+
+    normalized_predictions = [];
+
+    for normalized_bit in predictions[0]:
+        normalized_prediction_bit = 0 if normalized_bit < 1 else 1;
+        normalized_predictions.append(normalized_prediction_bit);
+
+    print ('normalized_predictions ', normalized_predictions);
     print ();
 
  
