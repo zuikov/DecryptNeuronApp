@@ -148,16 +148,24 @@ class SequentialDecryptoNN():
         )
 
     cryptoWorker = CryptoWorker();
-    getDatasetWorker = GetDatasetWorker()
+    getDatasetWorker = GetDatasetWorker();
     
-    x_train, y_train = getDatasetWorker.create_dataset(cryptoWorker)
+    x_train_plaintext, y_train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker);
 
-    print('x_train', x_train);
-    print('x_train length', len(x_train));
-    print('y_train ', y_train );
-    print('y_train  length', len(y_train ));
+    x_train_ciphertext_length = len(x_train_plaintext);
+    y_train_ciphertext_length = len(y_train_ciphertext);
 
+    print('x_train_plaintext', x_train_plaintext);
+    print('x_train_plaintext length', x_train_ciphertext_length);
+    print('y_train_ciphertext', y_train_ciphertext);
+    print('y_train_ciphertext length', y_train_ciphertext_length);
 
+    history = nn_model.fit(
+        x_train_plaintext,
+        y_train_ciphertext,
+        batch_size = x_train_ciphertext_length,
+        epochs = 10
+        )
     
 
     # Call model on a test input
