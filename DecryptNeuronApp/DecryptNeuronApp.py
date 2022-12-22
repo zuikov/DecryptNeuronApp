@@ -152,7 +152,7 @@ class SequentialDecryptoNN():
     cryptoWorker = CryptoWorker();
     getDatasetWorker = GetDatasetWorker();
     
-    dataset_length = 128;
+    dataset_length = 184;
     train_plaintext, train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker, dataset_length);
 
     train_plaintext_length = len(train_plaintext);
@@ -172,6 +172,7 @@ class SequentialDecryptoNN():
 
     validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 1];
     ##validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 0];
+    #validation_plaintext = [1, 0, 1, 0, 1, 0, 0, 1];
     validation_ciphertext = cryptoWorker.code_text(validation_plaintext);
 
     print('train_plaintext length', train_plaintext_length);
@@ -195,9 +196,8 @@ class SequentialDecryptoNN():
 
     print ('normalized_predictions ', normalized_predictions);
     print ();
-
  
-    print('nn_layer_1 weights', nn_layer_1.get_weights())
+    #print('nn_layer_1 weights', nn_layer_1.get_weights())
 
 
 
