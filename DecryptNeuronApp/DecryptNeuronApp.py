@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow import keras
 import itertools
 import numpy as np
+import random
 print("TensorFlow version:", tf.__version__)
 
 PLAIN_TEXT_LENGTH = 8;
@@ -106,7 +107,8 @@ class GetDatasetWorker():
 
     def create_plaintext_dataset(self, dataset_length):
         plain_dataset_list = list(itertools.product([0, 1], repeat=PLAIN_TEXT_LENGTH));
-        #plain_dataset = [[*dataset] for dataset in plain_dataset_list];
+        random.shuffle(plain_dataset_list);
+
         return np.array(plain_dataset_list)[0 : dataset_length];
 
     def create_dataset(self, cryptoWorker, dataset_length):
@@ -226,7 +228,7 @@ if __name__ == "__main__":
     plain_dataset = [[0, 0, 1, 1, 1, 0, 1, 0], [0, 0, 1, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 0], [1, 0, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 0], [1, 1, 0, 1, 1, 0, 1, 0], [1, 1, 0, 0, 1, 0, 0, 0]];
     #plain_dataset = [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]];
 
-    train_set_length = 20;
+    train_set_length = 50;
     
     verifyDataset.verifyForTrainSetLength(train_set_length, plain_dataset);
 
