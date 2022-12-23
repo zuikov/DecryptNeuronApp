@@ -152,7 +152,7 @@ class SequentialDecryptoNN():
             train_ciphertext,
             train_plaintext,
             batch_size = train_plaintext_length,
-            epochs = 10000
+            epochs = 15000
             )
   
     def predict(self, cipher_text):
@@ -208,6 +208,8 @@ class VerifyDataset():
             # Train Neural Network on dataset with given length 
             self.sequentialDecryptoNN.train(train_ciphertext, train_plaintext);
 
+            print('train set length: ', train_set_length);
+
             for plain_set in plain_dataset:
                 self.getCorrelation(plain_set)
 
@@ -222,8 +224,10 @@ if __name__ == "__main__":
     verifyDataset = VerifyDataset();
 
     plain_dataset = [[0, 0, 1, 1, 1, 0, 1, 0], [0, 0, 1, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 0], [1, 0, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 0], [1, 1, 0, 1, 1, 0, 1, 0], [1, 1, 0, 0, 1, 0, 0, 0]];
+    #plain_dataset = [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]];
 
-    train_set_length = 256;
+    train_set_length = 20;
+    
     verifyDataset.verifyForTrainSetLength(train_set_length, plain_dataset);
 
 
