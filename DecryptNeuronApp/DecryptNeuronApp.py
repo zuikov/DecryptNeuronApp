@@ -15,7 +15,7 @@ PLAIN_TEXT_LENGTH = 8;
 class CryptoWorker():
     HALF_PLAIN_TEXT_LENGTH = int(PLAIN_TEXT_LENGTH / 2);
     ROUND_KEY = [1, 0, 1, 0, 1, 1, 1, 0];
-    # ordered s-box-table can't be used, becasuse result obviously correlates to the initial plain text
+    # ordered s-box-table can't be used, because result obviously correlates to the initial plain text
     # don't do:
     # S_BOX_TABLE = [[[0,0,0,0], [0,0,0,1], [0,0,1,0], [0,0,1,1]], [[0,1,0,0], [0,1,0,1], [0,1,1,0], [0,1,1,1]], [[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1]], [[1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]]];
     # use unordered table
@@ -149,8 +149,41 @@ class SequentialDecryptoNN():
             ]
         )
 
+    def train(self, train_ciphertext, train_plaintext):
+        train_plaintext_length = len(train_plaintext);
+
+        _history = self.nn_model.fit(
+            train_ciphertext,
+            train_plaintext,
+            batch_size = train_plaintext_length,
+            epochs = 10000
+            )
+  
+    def predict(self, cipher_text):
+        return self.nn_model.predict([cipher_text]);
+
+    
+class TransformToBinary():
+    normalized_prediction = [];
+
+    def normalize(self, predictions):
+        for normalized_bit in predictions[0]:
+            normalized_prediction_bit = round(normalized_bit) if normalized_bit < 1 else 1;
+            self.normalized_prediction.append(normalized_prediction_bit);
+
+        return self.normalized_prediction;
+
+
+
+# Driver Code
+if __name__ == "__main__":
+
+    sequentialDecryptoNN = SequentialDecryptoNN();
+
     cryptoWorker = CryptoWorker();
     getDatasetWorker = GetDatasetWorker();
+
+    transformToBinary = TransformToBinary();
     
     dataset_length = 184;
     train_plaintext, train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker, dataset_length);
@@ -160,50 +193,32 @@ class SequentialDecryptoNN():
 
     print('train_plaintext', train_plaintext);
     print('train_ciphertext', train_ciphertext);
-    
 
-    history = nn_model.fit(
-        train_ciphertext,
-        train_plaintext,
-        batch_size = train_plaintext_length,
-        epochs = 10000
-        )
-    
+    sequentialDecryptoNN.train(train_ciphertext, train_plaintext);
+
 
     validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 1];
     ##validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 0];
     #validation_plaintext = [1, 0, 1, 0, 1, 0, 0, 1];
     validation_ciphertext = cryptoWorker.code_text(validation_plaintext);
 
-    print('train_plaintext length', train_plaintext_length);
-    print('train_ciphertext length', train_ciphertext_length);
 
+    raw_prediction = sequentialDecryptoNN.predict(validation_ciphertext);
+
+    prediction = transformToBinary.normalize(raw_prediction);
+
+    #print('train_plaintext length', train_plaintext_length);
+    #print('train_ciphertext length', train_ciphertext_length);
+
+    print ();
     print ('validation_plaintext   ', validation_plaintext);
     print ('validation_ciphertext  ', validation_ciphertext);
+    print ('prediction             ', prediction);
     print ();
 
-    # Call model on a test input
-    predictions = nn_model.predict([validation_ciphertext]);
 
-    print ('predictions           ', predictions);
+
+    print ('raw_prediction ', raw_prediction);
     print ();
-
-    normalized_predictions = [];
-
-    for normalized_bit in predictions[0]:
-        normalized_prediction_bit = round(normalized_bit) if normalized_bit < 1 else 1;
-        normalized_predictions.append(normalized_prediction_bit);
-
-    print ('normalized_predictions ', normalized_predictions);
-    print ();
- 
-    #print('nn_layer_1 weights', nn_layer_1.get_weights())
-
-
-
-# Driver Code
-if __name__ == "__main__":
-
-    SequentialDecryptoNN()
 
 
