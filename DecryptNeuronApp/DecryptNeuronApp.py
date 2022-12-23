@@ -119,10 +119,6 @@ class GetDatasetWorker():
         return [plain_dataset, np.array(self.cipher_dataset)];
 
 
-# Class to format dataset pairs for Neuron Network
-class FormatDatasetWorker():
-    print()
-
 
 # Keras Sequential Neuron Network
 class SequentialDecryptoNN():
@@ -164,61 +160,74 @@ class SequentialDecryptoNN():
 
     
 class TransformToBinary():
-    normalized_prediction = [];
-
     def normalize(self, predictions):
+        normalized_prediction = [];
+
         for normalized_bit in predictions[0]:
             normalized_prediction_bit = round(normalized_bit) if normalized_bit < 1 else 1;
-            self.normalized_prediction.append(normalized_prediction_bit);
+            normalized_prediction.append(normalized_prediction_bit);
 
-        return self.normalized_prediction;
+        return normalized_prediction;
+
+
+class ValidateMessage():
+    def getPercentage(self, plain_text, prediction):
+        relevance_delta = 100 / PLAIN_TEXT_LENGTH;
+        matching_percentage = 0;
+
+        for index in range(PLAIN_TEXT_LENGTH):
+            increment = relevance_delta if plain_text[index] == prediction[index] else 0;
+            matching_percentage += increment;
+
+        return matching_percentage;
+
+
+class VerifyDataset():
+    sequentialDecryptoNN = SequentialDecryptoNN();
+    cryptoWorker = CryptoWorker();
+    getDatasetWorker = GetDatasetWorker();
+    transformToBinary = TransformToBinary();
+    validateMessage = ValidateMessage();
+
+    def getCorrelation(self, validation_plaintext):
+            validation_ciphertext = self.cryptoWorker.code_text(validation_plaintext);
+            raw_prediction = self.sequentialDecryptoNN.predict(validation_ciphertext);
+            prediction = self.transformToBinary.normalize(raw_prediction);
+            matching_percentage = self.validateMessage.getPercentage(validation_plaintext, prediction);
+
+            print ('_________________________________________________________________________________________________');
+            print ('validation_ciphertext  ', validation_ciphertext, 'validation_plaintext   ', validation_plaintext, );
+            print ('                                                 prediction             ', prediction, '   matching :', matching_percentage, '%');
+            print ();
+
+
+
+    def verifyForTrainSetLength(self, train_set_length, plain_dataset):
+            train_plaintext, train_ciphertext = self.getDatasetWorker.create_dataset(self.cryptoWorker, train_set_length);
+
+            # Train Neural Network on dataset with given length 
+            self.sequentialDecryptoNN.train(train_ciphertext, train_plaintext);
+
+            for plain_set in plain_dataset:
+                self.getCorrelation(plain_set)
+
+
+
 
 
 
 # Driver Code
 if __name__ == "__main__":
 
-    sequentialDecryptoNN = SequentialDecryptoNN();
+    verifyDataset = VerifyDataset();
 
-    cryptoWorker = CryptoWorker();
-    getDatasetWorker = GetDatasetWorker();
+    plain_dataset = [[0, 0, 1, 1, 1, 0, 1, 0], [0, 0, 1, 1, 1, 0, 1, 1], [0, 1, 1, 0, 1, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 0], [1, 0, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 0], [1, 1, 0, 1, 1, 0, 1, 0], [1, 1, 0, 0, 1, 0, 0, 0]];
 
-    transformToBinary = TransformToBinary();
-    
-    dataset_length = 184;
-    train_plaintext, train_ciphertext = getDatasetWorker.create_dataset(cryptoWorker, dataset_length);
-
-    train_plaintext_length = len(train_plaintext);
-    train_ciphertext_length = len(train_ciphertext);
-
-    print('train_plaintext', train_plaintext);
-    print('train_ciphertext', train_ciphertext);
-
-    sequentialDecryptoNN.train(train_ciphertext, train_plaintext);
-
-
-    validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 1];
-    ##validation_plaintext = [0, 0, 1, 1, 1, 0, 1, 0];
-    #validation_plaintext = [1, 0, 1, 0, 1, 0, 0, 1];
-    validation_ciphertext = cryptoWorker.code_text(validation_plaintext);
-
-
-    raw_prediction = sequentialDecryptoNN.predict(validation_ciphertext);
-
-    prediction = transformToBinary.normalize(raw_prediction);
-
-    #print('train_plaintext length', train_plaintext_length);
-    #print('train_ciphertext length', train_ciphertext_length);
-
-    print ();
-    print ('validation_plaintext   ', validation_plaintext);
-    print ('validation_ciphertext  ', validation_ciphertext);
-    print ('prediction             ', prediction);
-    print ();
+    train_set_length = 256;
+    verifyDataset.verifyForTrainSetLength(train_set_length, plain_dataset);
 
 
 
-    print ('raw_prediction ', raw_prediction);
-    print ();
+
 
 
